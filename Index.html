@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЛюксоГрам</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%); color: #d4af37; }
+        .heading { font-family: 'Playfair Display', serif; }
+        .gold { color: #d4af37; }
+        .gold-gradient { background: linear-gradient(135deg, #d4af37, #f0d48a, #d4af37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .input { background: rgba(26, 26, 26, 0.95); border: 1px solid rgba(212, 175, 55, 0.3); color: #eee; transition: all 0.3s ease; }
+        .input:focus { border-color: #d4af37; box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15); }
+        .glass { background: rgba(17, 17, 17, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(212, 175, 55, 0.25); }
+        .card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-6px); }
+        @media (max-width: 768px) {
+            .heading { font-size: 2.25rem; }
+            nav h2 { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="promo-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass w-full max-w-md p-8 md:p-12 rounded-3xl">
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#d4af37] to-amber-300 rounded-2xl mb-6 mx-auto">
+                    <i class="fa-solid fa-gem text-5xl text-black"></i>
+                </div>
+                <h1 class="heading text-5xl md:text-6xl tracking-widest gold-gradient">LUXOGRAM</h1>
+            </div>
+            <input id="code" type="password" class="input w-full px-6 py-5 rounded-3xl text-lg text-center mb-8">
+            <button onclick="checkPromo()" id="btn-promo" class="w-full bg-gradient-to-r from-[#d4af37] to-amber-300 text-black py-5 rounded-3xl font-semibold text-lg"></button>
+            <p id="promo-error" class="text-red-400 text-center mt-6 text-sm hidden"></p>
+            <div id="promo-hint" class="text-center mt-8 text-[#d4af37]/60 text-sm"></div>
+        </div>
+    </div>
+
+    <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="glass w-full max-w-md p-8 md:p-12 rounded-3xl">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#d4af37] to-amber-300 rounded-2xl mb-6 mx-auto">
+                    <i class="fa-solid fa-gem text-5xl text-black"></i>
+                </div>
+                <h1 class="heading text-4xl md:text-5xl tracking-widest gold-gradient">LUXOGRAM</h1>
+            </div>
+
+            <div class="flex gap-2 mb-8">
+                <button onclick="switchAuthTab('register')" id="tab-register" class="flex-1 py-3 rounded-2xl font-semibold bg-gradient-to-r from-[#d4af37] to-amber-300 text-black"></button>
+                <button onclick="switchAuthTab('login')" id="tab-login" class="flex-1 py-3 rounded-2xl font-semibold border border-[#d4af37]/40 text-[#d4af37]"></button>
+            </div>
+
+            <div id="register-form" class="space-y-5">
+                <h2 id="register-title" class="text-center text-xl mb-2"></h2>
+                <input id="reg-username" type="text" class="input w-full px-6 py-4 rounded-3xl text-lg" placeholder="@username">
+                <input id="reg-password" type="password" class="input w-full px-6 py-4 rounded-3xl text-lg">
+                <input id="reg-password2" type="password" class="input w-full px-6 py-4 rounded-3xl text-lg">
+                <button onclick="register()" id="btn-register" class="w-full bg-gradient-to-r from-[#d4af37] to-amber-300 text-black py-5 rounded-3xl font-semibold text-lg"></button>
+            </div>
+
+            <div id="login-form" class="space-y-5 hidden">
+                <h2 id="login-title" class="text-center text-xl mb-2"></h2>
+                <input id="login-username" type="text" class="input w-full px-6 py-4 rounded-3xl text-lg" placeholder="@username">
+                <input id="login-password" type="password" class="input w-full px-6 py-4 rounded-3xl text-lg">
+                <button onclick="loginAccount()" id="btn-login-acc" class="w-full bg-gradient-to-r from-[#d4af37] to-amber-300 text-black py-5 rounded-3xl font-semibold text-lg"></button>
+            </div>
+
+            <p id="auth-error" class="text-red-400 text-center mt-6 text-sm hidden"></p>
+        </div>
+    </div>
+
+    <div id="app" class="hidden min-h-screen">
+        <nav class="bg-black/95 border-b border-[#d4af37]/20 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-50">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleMenu()" class="text-3xl gold p-2"><i class="fa-solid fa-bars"></i></button>
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-gem text-3xl gold"></i>
+                    <h1 class="heading text-3xl gold-gradient">LUXOGRAM</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="current-user" class="text-sm text-[#d4af37]/80 hidden md:inline"></span>
+                <button onclick="logoutAccount()" id="btn-logout" class="px-6 py-2 border border-[#d4af37]/40 rounded-2xl text-sm"></button>
+            </div>
+        </nav>
+
+        <div id="menu" class="hidden fixed inset-y-0 left-0 w-72 bg-[#111]/95 backdrop-blur-xl border-r border-[#d4af37]/20 p-6 z-50 overflow-y-auto">
+            <button onclick="toggleMenu()" class="absolute top-6 right-6 text-3xl gold"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="space-y-2 pt-10">
+                <button onclick="showScreen('create')" id="menu-create" class="w-full text-left px-6 py-4 hover:bg-white/5 rounded-2xl flex items-center gap-3 text-lg"><i class="fa-solid fa-plus"></i> </button>
+                <button onclick="showScreen('catalog')" id="menu-catalog" class="w-full text-left px-6 py-4 hover:bg-white/5 rounded-2xl flex items-center gap-3 text-lg"><i class="fa-solid fa-list"></i> </button>
+                <button onclick="showScreen('mythemes')" id="menu-mythemes" class="w-full text-left px-6 py-4 hover:bg-white/5 rounded-2xl flex items-center gap-3 text-lg"><i class="fa-solid fa-user"></i> </button>
+                <a href="https://t.me/DsStarHub" target="_blank" class="w-full text-left px-6 py-4 hover:bg-white/5 rounded-2xl flex items-center gap-3 text-lg"><i class="fa-solid fa-headset"></i> <span id="menu-support"></span></a>
+                <a href="https://t.me/StarLuxoGramBot" target="_blank" class="w-full text-left px-6 py-4 hover:bg-white/5 rounded-2xl flex items-center gap-3 text-lg"><i class="fa-solid fa-robot"></i> <span id="menu-bot"></span></a>
+
+                <div class="pt-4 border-t border-[#d4af37]/20">
+                    <div id="lang-title" class="px-6 py-3 text-[#d4af37]/70 text-sm font-medium"></div>
+                    <button onclick="setLanguage('ru')" class="w-full text-left px-6 py-4 hover:bg-white/5 rounded-2xl flex items-center gap-3 text-lg"><span class="text-xl">🇷🇺</span> Русский</button>
+                    <button onclick="setLanguage('en')" class="w-full text-left px-6 py-4 hover:bg-white/5 rounded-2xl flex items-center gap-3 text-lg"><span class="text-xl">🇬🇧</span> English</button>
+                </div>
+
+                <div class="pt-4 border-t border-[#d4af37]/20">
+                    <button onclick="showScreen('settings')" id="menu-settings" class="w-full text-left px-6 py-4 hover:bg-white/5 rounded-2xl flex items-center gap-3 text-lg"><span class="text-xl">⚙️</span> </button>
+                </div>
+
+                <div class="pt-4 border-t border-[#d4af37]/20">
+                    <div class="px-6 py-4 text-sm">
+                        <div id="wallet-title" class="text-[#d4af37]/70 mb-2 font-medium"></div>
+                        <div id="wallet-address" onclick="copyWallet()" class="break-all cursor-pointer hover:text-[#d4af37] text-[#d4af37] select-all mb-3 leading-relaxed">UQA5xLvRVKh38cY60nP1AW_yjBLUkpBR3grkVWXZyXRGohSa</div>
+                        <div id="wallet-desc" class="text-[#d4af37]/60 text-xs leading-relaxed"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="create-screen" class="hidden p-6 md:p-8 max-w-2xl mx-auto pt-8">
+            <button onclick="backToCatalog()" id="btn-back-create" class="mb-6 flex items-center gap-2 text-[#d4af37]/70 hover:text-[#d4af37]"></button>
+            <h2 id="create-title" class="heading text-4xl mb-8 gold-gradient"></h2>
+            <div class="glass p-8 rounded-3xl space-y-6">
+                <input id="theme-name" class="input w-full px-6 py-5 rounded-3xl text-lg">
+                <textarea id="theme-desc" rows="4" class="input w-full px-6 py-5 rounded-3xl text-lg"></textarea>
+                <button onclick="createTheme()" id="btn-publish" class="w-full bg-gradient-to-r from-[#d4af37] to-amber-300 text-black py-6 rounded-3xl font-semibold text-xl"></button>
+            </div>
+        </div>
+
+        <div id="catalog-screen" class="hidden p-6 md:p-8">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <h2 id="catalog-title" class="heading text-4xl gold-gradient"></h2>
+                    <div class="relative w-full max-w-xs">
+                        <input id="search" onkeyup="searchThemes()" class="input w-full px-6 py-4 pl-12 rounded-3xl">
+                        <i class="fa-solid fa-magnifying-glass absolute left-5 top-4 text-gray-400"></i>
+                    </div>
+                </div>
+                <div id="themes-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+
+        <div id="mythemes-screen" class="hidden p-6 md:p-8">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 id="mythemes-title" class="heading text-4xl gold-gradient"></h2>
+                    <button onclick="backToCatalog()" id="btn-back-my" class="flex items-center gap-2 text-[#d4af37]/70 hover:text-[#d4af37]"></button>
+                </div>
+                <div id="my-themes-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+
+        <div id="settings-screen" class="hidden p-6 md:p-8 max-w-2xl mx-auto pt-8">
+            <button onclick="backToCatalog()" id="btn-back-settings" class="mb-6 flex items-center gap-2 text-[#d4af37]/70 hover:text-[#d4af37]"></button>
+            <h2 id="settings-title" class="heading text-4xl mb-8 gold-gradient"></h2>
+            <div class="glass p-8 rounded-3xl space-y-8">
+                <div class="text-center">
+                    <p id="settings-username" class="text-xl gold"></p>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 id="change-username-title" class="text-lg font-medium"></h3>
+                    <input id="new-username" type="text" class="input w-full px-6 py-4 rounded-3xl text-lg">
+                    <input id="username-current-password" type="password" class="input w-full px-6 py-4 rounded-3xl text-lg">
+                    <button onclick="changeUsername()" id="btn-change-username" class="w-full bg-gradient-to-r from-[#d4af37] to-amber-300 text-black py-4 rounded-3xl font-semibold text-lg"></button>
+                </div>
+
+                <div class="space-y-4 pt-4 border-t border-[#d4af37]/20">
+                    <h3 id="change-password-title" class="text-lg font-medium"></h3>
+                    <input id="current-password" type="password" class="input w-full px-6 py-4 rounded-3xl text-lg">
+                    <input id="new-password" type="password" class="input w-full px-6 py-4 rounded-3xl text-lg">
+                    <input id="new-password2" type="password" class="input w-full px-6 py-4 rounded-3xl text-lg">
+                    <button onclick="changePassword()" id="btn-change-password" class="w-full bg-gradient-to-r from-[#d4af37] to-amber-300 text-black py-4 rounded-3xl font-semibold text-lg"></button>
+                </div>
+
+                <button onclick="logoutAccount()" id="btn-logout-settings" class="w-full border border-red-400/50 text-red-400 py-5 rounded-3xl font-semibold text-lg hover:bg-red-400/10 transition"></button>
+            </div>
+            <p id="settings-error" class="text-red-400 text-center mt-6 text-sm hidden"></p>
+            <p id="settings-success" class="text-green-400 text-center mt-6 text-sm hidden"></p>
+        </div>
+    </div>
+
+    <script>
+        let currentLang = localStorage.getItem('luxoLang') || 'ru';
+        let themes = JSON.parse(localStorage.getItem('luxothemes')) || [];
+        let accounts = JSON.parse(localStorage.getItem('luxoAccounts')) || [];
+        let currentUser = localStorage.getItem('luxoCurrentUser') || null;
+        let promoUsed = localStorage.getItem('luxoPromoUsed') === 'true';
+
+        const translations = {
+            ru: {
+                promoPlaceholder: "Введите промокод",
+                promoBtn: "ПРОДОЛЖИТЬ",
+                promoError: "Неверный промокод",
+                promoHint: "Промокод можно найти в телеграм чате @DsStarHub",
+                tabRegister: "Создать",
+                tabLogin: "Войти",
+                registerTitle: "Создайте аккаунт",
+                loginTitle: "Вход в аккаунт",
+                usernamePlaceholder: "@username в Telegram",
+                passwordPlaceholder: "Пароль (8-32 символа)",
+                password2Placeholder: "Повторите пароль",
+                registerBtn: "СОЗДАТЬ АККАУНТ",
+                loginBtn: "ВОЙТИ",
+                logoutBtn: "ВЫЙТИ",
+                menuCreate: "Создать тему",
+                menuCatalog: "Каталог тем",
+                menuMy: "Мои темы",
+                menuSupport: "Техподдержка",
+                menuBot: "Наш бот",
+                menuSettings: "Настройки аккаунта",
+                langTitle: "ЯЗЫК / LANGUAGE",
+                backBtn: "Назад",
+                createTitle: "Создать тему",
+                namePlaceholder: "Название темы",
+                descPlaceholder: "Суть темы",
+                publishBtn: "ОПУБЛИКОВАТЬ",
+                catalogTitle: "Каталог тем",
+                searchPlaceholder: "Поиск...",
+                myThemesTitle: "Мои темы",
+                settingsTitle: "Настройки аккаунта",
+                logoutSettings: "Выход из аккаунта",
+                noThemes: "У вас пока нет тем",
+                noResults: "Темы не найдены",
+                fillFields: "Заполните все поля",
+                published: "Тема опубликована!",
+                deleteConfirm: "Удалить эту тему?",
+                usernameTaken: "Этот ник уже занят",
+                passwordMismatch: "Пароли не совпадают",
+                passwordInvalid: "Пароль: 8-32 символа, только латиница, цифры и символы",
+                usernameInvalid: "Ник должен начинаться с @ и содержать только латиницу, цифры и _",
+                loginFailed: "Неверный ник или пароль",
+                accountCreated: "Аккаунт создан!",
+                changeUsernameTitle: "Изменить юзернейм",
+                changePasswordTitle: "Изменить пароль",
+                newUsernamePlaceholder: "Новый @username",
+                currentPasswordPlaceholder: "Текущий пароль",
+                newPasswordPlaceholder: "Новый пароль (8-32 символа)",
+                newPassword2Placeholder: "Повторите новый пароль",
+                changeUsernameBtn: "ИЗМЕНИТЬ ЮЗЕРНЕЙМ",
+                changePasswordBtn: "ИЗМЕНИТЬ ПАРОЛЬ",
+                usernameChanged: "Юзернейм успешно изменён!",
+                passwordChanged: "Пароль успешно изменён!",
+                wrongPassword: "Неверный текущий пароль",
+                sameUsername: "Новый юзернейм совпадает с текущим",
+                walletTitle: "Мой крипто кошелёк:",
+                walletDesc: "Буду рад каждой сумме, все деньги пойдут на расширение проекта.",
+                copied: "Адрес скопирован!"
+            },
+            en: {
+                promoPlaceholder: "Enter promo code",
+                promoBtn: "CONTINUE",
+                promoError: "Invalid promo code",
+                promoHint: "Promo code can be found in Telegram chat @DsStarHub",
+                tabRegister: "Sign Up",
+                tabLogin: "Log In",
+                registerTitle: "Create Account",
+                loginTitle: "Log In",
+                usernamePlaceholder: "@username on Telegram",
+                passwordPlaceholder: "Password (8-32 chars)",
+                password2Placeholder: "Repeat password",
+                registerBtn: "CREATE ACCOUNT",
+                loginBtn: "LOG IN",
+                logoutBtn: "LOG OUT",
+                menuCreate: "Create Theme",
+                menuCatalog: "Themes Catalog",
+                menuMy: "My Themes",
+                menuSupport: "Support",
+                menuBot: "Our Bot",
+                menuSettings: "Account Settings",
+                langTitle: "LANGUAGE",
+                backBtn: "Back",
+                createTitle: "Create Theme",
+                namePlaceholder: "Theme Name",
+                descPlaceholder: "Theme Description",
+                publishBtn: "PUBLISH",
+                catalogTitle: "Themes Catalog",
+                searchPlaceholder: "Search...",
+                myThemesTitle: "My Themes",
+                settingsTitle: "Account Settings",
+                logoutSettings: "Log Out",
+                noThemes: "You have no themes yet",
+                noResults: "No themes found",
+                fillFields: "Please fill all fields",
+                published: "Theme published!",
+                deleteConfirm: "Delete this theme?",
+                usernameTaken: "This username is already taken",
+                passwordMismatch: "Passwords do not match",
+                passwordInvalid: "Password: 8-32 chars, only Latin letters, numbers and symbols",
+                usernameInvalid: "Username must start with @ and contain only Latin letters, numbers and _",
+                loginFailed: "Invalid username or password",
+                accountCreated: "Account created!",
+                changeUsernameTitle: "Change Username",
+                changePasswordTitle: "Change Password",
+                newUsernamePlaceholder: "New @username",
+                currentPasswordPlaceholder: "Current password",
+                newPasswordPlaceholder: "New password (8-32 chars)",
+                newPassword2Placeholder: "Repeat new password",
+                changeUsernameBtn: "CHANGE USERNAME",
+                changePasswordBtn: "CHANGE PASSWORD",
+                usernameChanged: "Username changed successfully!",
+                passwordChanged: "Password changed successfully!",
+                wrongPassword: "Incorrect current password",
+                sameUsername: "New username is the same as current",
+                walletTitle: "My crypto wallet:",
+                walletDesc: "I'll be glad for any amount, all money will go to expand the project.",
+                copied: "Address copied!"
+            }
+        };
+
+        function t(key) {
+            return translations[currentLang][key] || key;
+        }
+
+        function showError(elId, msg) {
+            const el = document.getElementById(elId);
+            el.textContent = msg;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+
+        function showSuccess(elId, msg) {
+            const el = document.getElementById(elId);
+            el.textContent = msg;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+
+        function updateTexts() {
+            document.documentElement.lang = currentLang;
+
+            document.getElementById('code').placeholder = t('promoPlaceholder');
+            document.getElementById('btn-promo').textContent = t('promoBtn');
+            document.getElementById('promo-hint').innerHTML = `<a href="https://t.me/DsStarHub" target="_blank" class="hover:underline hover:text-[#d4af37]">${t('promoHint')}</a>`;
+
+            document.getElementById('tab-register').textContent = t('tabRegister');
+            document.getElementById('tab-login').textContent = t('tabLogin');
+            document.getElementById('register-title').textContent = t('registerTitle');
+            document.getElementById('login-title').textContent = t('loginTitle');
+            document.getElementById('reg-username').placeholder = t('usernamePlaceholder');
+            document.getElementById('reg-password').placeholder = t('passwordPlaceholder');
+            document.getElementById('reg-password2').placeholder = t('password2Placeholder');
+            document.getElementById('login-username').placeholder = t('usernamePlaceholder');
+            document.getElementById('login-password').placeholder = t('passwordPlaceholder');
+            document.getElementById('btn-register').textContent = t('registerBtn');
+            document.getElementById('btn-login-acc').textContent = t('loginBtn');
+
+            document.getElementById('menu-create').lastChild.textContent = ' ' + t('menuCreate');
+            document.getElementById('menu-catalog').lastChild.textContent = ' ' + t('menuCatalog');
+            document.getElementById('menu-mythemes').lastChild.textContent = ' ' + t('menuMy');
+            document.getElementById('menu-support').textContent = t('menuSupport');
+            document.getElementById('menu-bot').textContent = t('menuBot');
+            document.getElementById('menu-settings').lastChild.textContent = ' ' + t('menuSettings');
+            document.getElementById('lang-title').textContent = t('langTitle');
+            document.getElementById('btn-logout').textContent = t('logoutBtn');
+
+            document.getElementById('wallet-title').textContent = t('walletTitle');
+            document.getElementById('wallet-desc').textContent = t('walletDesc');
+
+            document.getElementById('btn-back-create').innerHTML = `<i class="fa-solid fa-arrow-left"></i> ${t('backBtn')}`;
+            document.getElementById('btn-back-my').innerHTML = `<i class="fa-solid fa-arrow-left"></i> ${t('backBtn')}`;
+            document.getElementById('btn-back-settings').innerHTML = `<i class="fa-solid fa-arrow-left"></i> ${t('backBtn')}`;
+            document.getElementById('create-title').textContent = t('createTitle');
+            document.getElementById('theme-name').placeholder = t('namePlaceholder');
+            document.getElementById('theme-desc').placeholder = t('descPlaceholder');
+            document.getElementById('btn-publish').textContent = t('publishBtn');
+            document.getElementById('catalog-title').textContent = t('catalogTitle');
+            document.getElementById('search').placeholder = t('searchPlaceholder');
+            document.getElementById('mythemes-title').textContent = t('myThemesTitle');
+            document.getElementById('settings-title').textContent = t('settingsTitle');
+            document.getElementById('btn-logout-settings').textContent = t('logoutSettings');
+
+            document.getElementById('change-username-title').textContent = t('changeUsernameTitle');
+            document.getElementById('change-password-title').textContent = t('changePasswordTitle');
+            document.getElementById('new-username').placeholder = t('newUsernamePlaceholder');
+            document.getElementById('username-current-password').placeholder = t('currentPasswordPlaceholder');
+            document.getElementById('current-password').placeholder = t('currentPasswordPlaceholder');
+            document.getElementById('new-password').placeholder = t('newPasswordPlaceholder');
+            document.getElementById('new-password2').placeholder = t('newPassword2Placeholder');
+            document.getElementById('btn-change-username').textContent = t('changeUsernameBtn');
+            document.getElementById('btn-change-password').textContent = t('changePasswordBtn');
+
+            if (currentUser) {
+                document.getElementById('current-user').textContent = currentUser;
+                document.getElementById('settings-username').textContent = currentUser;
+            }
+
+            if (!document.getElementById('catalog-screen').classList.contains('hidden')) renderThemes();
+            if (!document.getElementById('mythemes-screen').classList.contains('hidden')) renderMyThemes();
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('luxoLang', lang);
+            updateTexts();
+            toggleMenu();
+        }
+
+        function checkPromo() {
+            const code = document.getElementById('code').value.trim();
+            if (code === "GlobalPassToLuxoGram") {
+                localStorage.setItem('luxoPromoUsed', 'true');
+                promoUsed = true;
+                document.getElementById('promo-screen').classList.add('hidden');
+                document.getElementById('auth-screen').classList.remove('hidden');
+            } else {
+                showError('promo-error', t('promoError'));
+            }
+        }
+
+        function switchAuthTab(tab) {
+            const regForm = document.getElementById('register-form');
+            const loginForm = document.getElementById('login-form');
+            const tabReg = document.getElementById('tab-register');
+            const tabLog = document.getElementById('tab-login');
+
+            if (tab === 'register') {
+                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                tabReg.className = 'flex-1 py-3 rounded-2xl font-semibold bg-gradient-to-r from-[#d4af37] to-amber-300 text-black';
+                tabLog.className = 'flex-1 py-3 rounded-2xl font-semibold border border-[#d4af37]/40 text-[#d4af37]';
+            } else {
+                regForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                tabLog.className = 'flex-1 py-3 rounded-2xl font-semibold bg-gradient-to-r from-[#d4af37] to-amber-300 text-black';
+                tabReg.className = 'flex-1 py-3 rounded-2xl font-semibold border border-[#d4af37]/40 text-[#d4af37]';
+            }
+            document.getElementById('auth-error').classList.add('hidden');
+        }
+
+        function isValidUsername(u) {
+            return /^@[a-zA-Z0-9_]{3,32}$/.test(u);
+        }
+
+        function isValidPassword(p) {
+            return /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,32}$/.test(p);
+        }
+
+        function register() {
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const password2 = document.getElementById('reg-password2').value;
+
+            if (!username || !password || !password2) {
+                showError('auth-error', t('fillFields'));
+                return;
+            }
+            if (!isValidUsername(username)) {
+                showError('auth-error', t('usernameInvalid'));
+                return;
+            }
+            if (!isValidPassword(password)) {
+                showError('auth-error', t('passwordInvalid'));
+                return;
+            }
+            if (password !== password2) {
+                showError('auth-error', t('passwordMismatch'));
+                return;
+            }
+            if (accounts.some(a => a.username.toLowerCase() === username.toLowerCase())) {
+                showError('auth-error', t('usernameTaken'));
+                return;
+            }
+
+            accounts.push({ username, password });
+            localStorage.setItem('luxoAccounts', JSON.stringify(accounts));
+            currentUser = username;
+            localStorage.setItem('luxoCurrentUser', username);
+            alert(t('accountCreated'));
+            enterApp();
+        }
+
+        function loginAccount() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            if (!username || !password) {
+                showError('auth-error', t('fillFields'));
+                return;
+            }
+
+            const acc = accounts.find(a => a.username.toLowerCase() === username.toLowerCase() && a.password === password);
+            if (!acc) {
+                showError('auth-error', t('loginFailed'));
+                return;
+            }
+
+            currentUser = acc.username;
+            localStorage.setItem('luxoCurrentUser', acc.username);
+            enterApp();
+        }
+
+        function enterApp() {
+            document.getElementById('promo-screen').classList.add('hidden');
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('current-user').textContent = currentUser;
+            document.getElementById('settings-username').textContent = currentUser;
+            showScreen('catalog');
+            updateTexts();
+        }
+
+        function logoutAccount() {
+            currentUser = null;
+            localStorage.removeItem('luxoCurrentUser');
+            document.getElementById('app').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('reg-username').value = '';
+            document.getElementById('reg-password').value = '';
+            document.getElementById('reg-password2').value = '';
+            switchAuthTab('login');
+            updateTexts();
+        }
+
+        function toggleMenu() {
+            document.getElementById('menu').classList.toggle('hidden');
+        }
+
+        function showScreen(screen) {
+            document.getElementById('create-screen').classList.add('hidden');
+            document.getElementById('catalog-screen').classList.add('hidden');
+            document.getElementById('mythemes-screen').classList.add('hidden');
+            document.getElementById('settings-screen').classList.add('hidden');
+
+            if (screen === 'create') document.getElementById('create-screen').classList.remove('hidden');
+            else if (screen === 'catalog') {
+                document.getElementById('catalog-screen').classList.remove('hidden');
+                renderThemes();
+            }
+            else if (screen === 'mythemes') {
+                document.getElementById('mythemes-screen').classList.remove('hidden');
+                renderMyThemes();
+            }
+            else if (screen === 'settings') {
+                document.getElementById('settings-screen').classList.remove('hidden');
+                document.getElementById('new-username').value = '';
+                document.getElementById('username-current-password').value = '';
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('new-password2').value = '';
+            }
+            toggleMenu();
+        }
+
+        function createTheme() {
+            const name = document.getElementById('theme-name').value.trim();
+            const desc = document.getElementById('theme-desc').value.trim();
+            if (!name || !desc) {
+                alert(t('fillFields'));
+                return;
+            }
+            themes.unshift({
+                id: Date.now(),
+                name,
+                desc,
+                user: currentUser,
+                owner: currentUser,
+                date: new Date().toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-US')
+            });
+            localStorage.setItem('luxothemes', JSON.stringify(themes));
+            document.getElementById('theme-name').value = '';
+            document.getElementById('theme-desc').value = '';
+            alert(t('published'));
+            showScreen('catalog');
+        }
+
+        function renderThemes(filtered = themes) {
+            const container = document.getElementById('themes-list');
+            container.innerHTML = '';
+            filtered.forEach(theme => {
+                const card = document.createElement('div');
+                card.className = "card glass rounded-3xl p-6";
+                card.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-3">${theme.name}</h3>
+                    <p class="text-gray-300 mb-4 line-clamp-3">${theme.desc}</p>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">${theme.user}</span>
+                        <span class="text-gray-500">${theme.date}</span>
+                    </div>`;
+                container.appendChild(card);
+            });
+            if (filtered.length === 0) {
+                container.innerHTML = `<p class="col-span-full text-center text-gray-400 py-12">${t('noResults')}</p>`;
+            }
+        }
+
+        function renderMyThemes() {
+            const container = document.getElementById('my-themes-list');
+            container.innerHTML = '';
+            const myThemes = themes.filter(th => th.owner === currentUser);
+            myThemes.forEach((theme) => {
+                const realIndex = themes.findIndex(t => t.id === theme.id);
+                const card = document.createElement('div');
+                card.className = "card glass rounded-3xl p-6";
+                card.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-3">${theme.name}</h3>
+                    <p class="text-gray-300 mb-4 line-clamp-3">${theme.desc}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 text-sm">${theme.date}</span>
+                        <button onclick="deleteTheme(${realIndex})" class="text-red-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+                container.appendChild(card);
+            });
+            if (myThemes.length === 0) {
+                container.innerHTML = `<p class="col-span-full text-center text-gray-400 py-12">${t('noThemes')}</p>`;
+            }
+        }
+
+        function deleteTheme(index) {
+            if (confirm(t('deleteConfirm'))) {
+                themes.splice(index, 1);
+                localStorage.setItem('luxothemes', JSON.stringify(themes));
+                renderMyThemes();
+            }
+        }
+
+        function searchThemes() {
+            const query = document.getElementById('search').value.toLowerCase().trim();
+            const filtered = themes.filter(th => th.name.toLowerCase().includes(query));
+            renderThemes(filtered);
+        }
+
+        function backToCatalog() {
+            showScreen('catalog');
+        }
+
+        function changeUsername() {
+            const newUsername = document.getElementById('new-username').value.trim();
+            const currentPass = document.getElementById('username-current-password').value;
+
+            if (!newUsername || !currentPass) {
+                showError('settings-error', t('fillFields'));
+                return;
+            }
+            if (!isValidUsername(newUsername)) {
+                showError('settings-error', t('usernameInvalid'));
+                return;
+            }
+            if (newUsername.toLowerCase() === currentUser.toLowerCase()) {
+                showError('settings-error', t('sameUsername'));
+                return;
+            }
+            if (accounts.some(a => a.username.toLowerCase() === newUsername.toLowerCase())) {
+                showError('settings-error', t('usernameTaken'));
+                return;
+            }
+
+            const accIndex = accounts.findIndex(a => a.username === currentUser);
+            if (accIndex === -1 || accounts[accIndex].password !== currentPass) {
+                showError('settings-error', t('wrongPassword'));
+                return;
+            }
+
+            const oldUsername = currentUser;
+            accounts[accIndex].username = newUsername;
+            localStorage.setItem('luxoAccounts', JSON.stringify(accounts));
+
+            themes.forEach(th => {
+                if (th.user === oldUsername) th.user = newUsername;
+                if (th.owner === oldUsername) th.owner = newUsername;
+            });
+            localStorage.setItem('luxothemes', JSON.stringify(themes));
+
+            currentUser = newUsername;
+            localStorage.setItem('luxoCurrentUser', newUsername);
+
+            document.getElementById('current-user').textContent = newUsername;
+            document.getElementById('settings-username').textContent = newUsername;
+            document.getElementById('new-username').value = '';
+            document.getElementById('username-current-password').value = '';
+            showSuccess('settings-success', t('usernameChanged'));
+        }
+
+        function changePassword() {
+            const currentPass = document.getElementById('current-password').value;
+            const newPass = document.getElementById('new-password').value;
+            const newPass2 = document.getElementById('new-password2').value;
+
+            if (!currentPass || !newPass || !newPass2) {
+                showError('settings-error', t('fillFields'));
+                return;
+            }
+            if (!isValidPassword(newPass)) {
+                showError('settings-error', t('passwordInvalid'));
+                return;
+            }
+            if (newPass !== newPass2) {
+                showError('settings-error', t('passwordMismatch'));
+                return;
+            }
+
+            const accIndex = accounts.findIndex(a => a.username === currentUser);
+            if (accIndex === -1 || accounts[accIndex].password !== currentPass) {
+                showError('settings-error', t('wrongPassword'));
+                return;
+            }
+
+            accounts[accIndex].password = newPass;
+            localStorage.setItem('luxoAccounts', JSON.stringify(accounts));
+
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('new-password2').value = '';
+            showSuccess('settings-success', t('passwordChanged'));
+        }
+
+        function copyWallet() {
+            const address = 'UQA5xLvRVKh38cY60nP1AW_yjBLUkpBR3grkVWXZyXRGohSa';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(address).then(() => {
+                    alert(t('copied'));
+                }).catch(() => {
+                    fallbackCopy(address);
+                });
+            } else {
+                fallbackCopy(address);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            el.style.position = 'fixed';
+            el.style.opacity = '0';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert(t('copied'));
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") {
+                const menu = document.getElementById('menu');
+                if (!menu.classList.contains('hidden')) toggleMenu();
+            }
+        });
+
+        window.onload = () => {
+            updateTexts();
+            if (currentUser) {
+                enterApp();
+            } else if (promoUsed) {
+                document.getElementById('promo-screen').classList.add('hidden');
+                document.getElementById('auth-screen').classList.remove('hidden');
+            } else {
+                document.getElementById('promo-screen').classList.remove('hidden');
+            }
+        };
+    </script>
+</body>
+                                                                                                                                                                              </html>
